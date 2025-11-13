@@ -18,18 +18,24 @@ if not BOT_TOKEN or not CHAT_ID:
 
 TOTAL_PROXIES_TO_SEND = 40
 
-# ----------------- تابع دریافت و تجزیه حدیث (بدون تغییر) -----------------
-# ----------------- تابع دریافت و تجزیه حدیث (با لاگ‌های بیشتر) -----------------
+# ----------------- تابع دریافت و تجزیه حدیث (با هدر User-Agent) -----------------
 def get_daily_hadith():
     """
     از سایت hadithlib.com یک حدیث تصادفی دریافت کرده و اطلاعات آن را استخراج می‌کند.
     در صورت موفقیت یک دیکشنری و در غیر این صورت None برمی‌گرداند.
     """
     hadith_url = "https://www.hadithlib.com/hadithlibjs/random/a6150e/Tahoma/10/bold/ffcfcd/1f95a6/Tahoma/11/normal/c9f8ff/864d2b/Traditional%20Arabic/18/bold/ffc39f/20483E/Tahoma/12/normal/6bfdd9/CD8F6A/Tahoma/10/normal/fbe8dc/BFAD7B/double/3/fefce7/58/1/1/1/1/1/1/1/1/"
+    
+    # هدر را تعریف می‌کنیم تا خودمان را یک مرورگر واقعی جا بزنیم
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+
     try:
-        print("در حال ارسال درخواست به سایت حدیث...")
-        response = requests.get(hadith_url, timeout=15) # تایم‌اوت را کمی بیشتر می‌کنیم
-        response.raise_for_status() # اگر کد وضعیت خطا بود (مثل 404 یا 500)، استثنا ایجاد می‌کند
+        print("در حال ارسال درخواست به سایت حدیث با هدر User-Agent...")
+        # هدر را به درخواست اضافه می‌کنیم
+        response = requests.get(hadith_url, headers=headers, timeout=15)
+        response.raise_for_status() # اگر کد وضعیت خطا بود، استثنا ایجاد می‌کند
         
         raw_js = response.text
         print("پاسخ از سایت حدیث دریافت شد. در حال استخراج محتوا...")
@@ -37,7 +43,7 @@ def get_daily_hadith():
         match = re.search(r"document\.write\('(.*)'\)", raw_js, re.DOTALL)
         if not match:
             print("خطا: الگوی Regex در محتوای JavaScript پیدا نشد.")
-            print("محتوای دریافت شده (برای بررسی):", raw_js[:300]) # 300 کاراکتر اول را نمایش بده
+            print("محتوای دریافت شده (برای بررسی):", raw_js[:300])
             return None
             
         html_content = match.group(1)
