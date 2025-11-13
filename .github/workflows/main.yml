@@ -1,0 +1,38 @@
+# نام Workflow شما
+name: Send Daily Telegram Message
+
+# تعریف زمانبندی اجرا
+on:
+  workflow_dispatch: # این خط به شما اجازه می‌دهد تا Workflow را به صورت دستی هم اجرا کنید
+  schedule:
+    # اجرا در ساعت 7 صبح به وقت UTC
+    # برای ساعت 7 صبح به وقت ایران (UTC+3:30)، باید ساعت 3:30 UTC را تنظیم کنید
+    - cron: '30 3 * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # استفاده از یک ماشین مجازی با سیستم عامل اوبونتو
+
+    steps:
+      # مرحله 1: کد شما را از ریپازیتوری دانلود می‌کند
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # مرحله 2: پایتون را نصب و تنظیم می‌کند
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10' # می‌توانید از نسخه‌های دیگر پایتون هم استفاده کنید
+
+      # مرحله 3: کتابخانه‌های مورد نیاز را با استفاده از pip نصب می‌کند
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # مرحله 4: اسکریپت پایتون را اجرا می‌کند
+      - name: Run Python script
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }} # خواندن Secret توکن
+          CHAT_ID: ${{ secrets.CHAT_ID }}     # خواندن Secret آیدی چت
+        run: python bot_script.py # نام فایل پایتون شما
