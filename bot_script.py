@@ -126,7 +126,7 @@ if proxy_links:
             "🆔@ProxyKlik"
         )
         
-        send_url = f"https://tradarena.vajab28192.workers.dev/bot{BOT_TOKEN}/sendMessage"
+        send_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
         payload = {
             'chat_id': CHAT_ID,
             'text': message_text,
@@ -160,7 +160,7 @@ if proxy_links:
             f"🆔@ProxyKlik"
         )
         
-        send_url = f"https://tradarena.vajab28192.workers.dev/bot{BOT_TOKEN}/sendMessage"
+        send_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
         payload = {
             'chat_id': CHAT_ID,
             'text': hadith_message,
