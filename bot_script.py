@@ -19,6 +19,7 @@ if not BOT_TOKEN or not CHAT_ID:
 TOTAL_PROXIES_TO_SEND = 40
 
 # ----------------- تابع دریافت و تجزیه حدیث (بدون تغییر) -----------------
+# ----------------- تابع دریافت و تجزیه حدیث (با لاگ‌های بیشتر) -----------------
 def get_daily_hadith():
     """
     از سایت hadithlib.com یک حدیث تصادفی دریافت کرده و اطلاعات آن را استخراج می‌کند.
@@ -26,14 +27,28 @@ def get_daily_hadith():
     """
     hadith_url = "https://www.hadithlib.com/hadithlibjs/random/a6150e/Tahoma/10/bold/ffcfcd/1f95a6/Tahoma/11/normal/c9f8ff/864d2b/Traditional%20Arabic/18/bold/ffc39f/20483E/Tahoma/12/normal/6bfdd9/CD8F6A/Tahoma/10/normal/fbe8dc/BFAD7B/double/3/fefce7/58/1/1/1/1/1/1/1/1/"
     try:
-        raw_js = requests.get(hadith_url, timeout=10).text
+        print("در حال ارسال درخواست به سایت حدیث...")
+        response = requests.get(hadith_url, timeout=15) # تایم‌اوت را کمی بیشتر می‌کنیم
+        response.raise_for_status() # اگر کد وضعیت خطا بود (مثل 404 یا 500)، استثنا ایجاد می‌کند
+        
+        raw_js = response.text
+        print("پاسخ از سایت حدیث دریافت شد. در حال استخراج محتوا...")
+
         match = re.search(r"document\.write\('(.*)'\)", raw_js, re.DOTALL)
         if not match:
-            print("خطا در استخراج HTML حدیث.")
+            print("خطا: الگوی Regex در محتوای JavaScript پیدا نشد.")
+            print("محتوای دریافت شده (برای بررسی):", raw_js[:300]) # 300 کاراکتر اول را نمایش بده
             return None
+            
         html_content = match.group(1)
         soup = BeautifulSoup(html_content, 'html.parser')
         spans = soup.find_all('span')
+        print(f"تعداد {len(spans)} تگ <span> پیدا شد.")
+
+        if len(spans) < 5:
+            print("خطا: تعداد تگ‌های <span> کمتر از حد انتظار است. ساختار سایت ممکن است تغییر کرده باشد.")
+            return None
+
         hadith_data = {
             "title": spans[0].get_text(strip=True),
             "speaker": spans[1].get_text(strip=True),
@@ -42,11 +57,12 @@ def get_daily_hadith():
             "source": spans[4].get_text(strip=True)
         }
         return hadith_data
+
     except requests.exceptions.RequestException as e:
         print(f"خطا در اتصال به سایت حدیث: {e}")
         return None
     except IndexError:
-        print("خطا: ساختار HTML سایت حدیث تغییر کرده است.")
+        print("خطا: ساختار HTML سایت حدیث تغییر کرده است (IndexError).")
         return None
     except Exception as e:
         print(f"خطای پیش‌بینی نشده در دریافت حدیث: {e}")
